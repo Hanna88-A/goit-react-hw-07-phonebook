@@ -1,32 +1,44 @@
-import React from "react";
-import { useSelector, useDispatch} from 'react-redux';
-import contactsAction from '../../redux/contacts/contacts-action';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import { useSelector} from 'react-redux';
 import PropTypes from 'prop-types';
+import { useFetchContactsQuery, useDeleteContactsMutation }  from '../../redux/contacts/contactsSlice';
 import s from './ContactList.module.css';
 
-const getVisinleContacts = (allContacts, filter) => {
-    const normalizedFilter = filter.toLowerCase();
-    return allContacts.filter(({ name }) =>
-        name.toLowerCase().includes(normalizedFilter),
-    );
-};
 
 const ContactList = () => {
-    const contacts = useSelector(state => getVisinleContacts(state.contacts.items, state.contacts.filter));
-    const dispatch = useDispatch()
+    const filter = (state) => state.contacts.filter;
+    const { data: contacts } = useFetchContactsQuery();
+    const [deleteContact] = useDeleteContactsMutation();
 
-    const onDeleteContact = (id) => dispatch(contactsAction.deleteContact(id))
+    const getFilter = useSelector(filter);
+    const getFilteredContacts = (contacts) =>
+        contacts?.filter((contact) =>
+        contact.name.toLowerCase().includes(getFilter.toLowerCase())
+        );
+
+    const filterContacts = getFilteredContacts(contacts);
+
+    const delContact = (id) => {
+        deleteContact(id)
+        Notify.success(`This contact has been deleted from the Contacts Book!`)
+    }
 
     return (
-        <ul className={s.list}>
-            {contacts.map(({ id, name, number }) => (
-
-                <li className={s.item} key={id}>
-                    {name}:
-                    <span className={s.number}>{number}</span>
-                    <button className={s.button} onClick={()=> onDeleteContact(id)}>Delete</button>
-                </li>))}
-        </ul>
+        <>
+            {contacts && 
+            <ul className={s.list}>
+                {filterContacts && 
+                    filterContacts.map(({ id, name, phone }) => (
+                    <li className={s.item} key={id}>
+                        {name}:
+                        <span className={s.number}>{phone}</span>
+                        <button className={s.button} onClick={()=> delContact(id)} >Delete</button>
+                    </li>))}
+            </ul>
+  
+        }
+        </>
+        
 
     );
     
@@ -38,3 +50,4 @@ ContactList.propTypes = {
     contacts: PropTypes.array,
     onDeleteContact: PropTypes.func,
 };
+

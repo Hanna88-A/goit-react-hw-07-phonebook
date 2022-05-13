@@ -1,7 +1,7 @@
 .list {
   display: inline-flex;
   flex-direction: column;
-  width: 330px;
+  width: 500px;
 }
 .item {
   margin-bottom: 20px;

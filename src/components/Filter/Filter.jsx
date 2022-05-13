@@ -4,8 +4,6 @@ import contactsAction from '../../redux/contacts/contacts-action';
 import PropTypes from 'prop-types';
 import s from './Filter.module.css';
 
-
-
 const Filter = () => {
     const value = useSelector(state => state.contacts.filter);
     const dispatch = useDispatch()

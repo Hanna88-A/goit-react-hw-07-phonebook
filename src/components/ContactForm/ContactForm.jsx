@@ -1,15 +1,17 @@
 import { useState} from "react";
 import PropTypes from 'prop-types';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import s from './ContactForm.module.css';
-import { useDispatch, useSelector } from 'react-redux';
-import contactsAction from '../../redux/contacts/contacts-action';
-
+import {
+    useCreateContactMutation,
+    useFetchContactsQuery
+} from '../../redux/contacts/contactsSlice';
 
 const ContactForm = () => {
     const [name, setName] = useState('');
     const [number, setNumber] = useState('');
-    const contacts = useSelector(state => state.contacts.items);
-    const dispatch = useDispatch()
+    const { data: contacts } = useFetchContactsQuery();
+    const [createContact, {isLoading}] = useCreateContactMutation();
     
     const onHandleChange = (event) => {
       
@@ -26,14 +28,19 @@ const ContactForm = () => {
         }
     };
 
-    const onHandleSubmit = event => {
-          if (contacts.find(contact => contact.name === name)) {
-        alert(`${name} is already in contacts`);
+    const  onHandleSubmit =  event => {
+        event.preventDefault();
+        
+        reset(); 
+         if (contacts.find(contact => contact.name === name)) {
+             Notify.failure(`${name} is already in contacts`);
         return
         }
-        event.preventDefault();
-        dispatch(contactsAction.addContact(name, number))
-        reset();
+        else {
+             createContact({ name, number })
+             Notify.success(`Нou added ${name} to your Contact book!`)
+        }
+        
     };
 
     const reset = () => {
@@ -71,7 +78,7 @@ const ContactForm = () => {
                     required
                 />
             </label>
-            <button className={s.button} type="submit">Add contact</button>
+            <button className={s.button} type="submit">{isLoading ? 'Adding...' : 'Add contact'}</button>
         </form>
     )
 };
